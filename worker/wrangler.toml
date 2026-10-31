@@ -1,0 +1,100 @@
+name = "feedbackkit-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-22"
+
+# D1 holds everything: apps, installations, submissions, and (from phase 2)
+# the reviewed public issues. Create it once with `npm run db:create` and
+# paste the id it prints below.
+[[d1_databases]]
+binding = "DB"
+database_name = "feedbackkit"
+database_id = "4cb65e58-0a76-4b81-9dc1-028ec74c19e8"
+migrations_dir = "migrations"
+
+# Workers Rate Limiting bindings. Counting happens at the edge, so abusive
+# traffic never reaches D1. `period` may only be 10 or 60 seconds, and the
+# binding does not report how long is left, so 429s carry
+# `Retry-After: <period>`. Tune the limits in phase 4.
+#
+# If your wrangler version rejects `[[ratelimits]]`, use the older spelling:
+#   [[unsafe.bindings]]
+#   name = "REGISTER_IP_LIMIT"
+#   type = "ratelimit"
+#   namespace_id = "1001"
+#   simple = { limit = 5, period = 60 }
+[[ratelimits]]
+name = "REGISTER_IP_LIMIT"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "SUBMIT_INSTALLATION_LIMIT"
+namespace_id = "1002"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "SUBMIT_IP_LIMIT"
+namespace_id = "1003"
+simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "REPLY_INSTALLATION_LIMIT"
+namespace_id = "1004"
+simple = { limit = 10, period = 60 }
+
+[[ratelimits]]
+name = "ENGAGE_INSTALLATION_LIMIT"
+namespace_id = "1005"
+simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "ATTEST_IP_LIMIT"
+namespace_id = "1006"
+simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "UPLOAD_INSTALLATION_LIMIT"
+namespace_id = "1007"
+simple = { limit = 20, period = 60 }
+
+# Contact-form enquiries from the landing page, per IP.
+[[ratelimits]]
+name = "ENQUIRY_IP_LIMIT"
+namespace_id = "1008"
+simple = { limit = 3, period = 60 }
+
+# Image attachments on reports and messages. Private: served only to the
+# owning installation and to the admin. Create once with
+# `npx wrangler r2 bucket create feedbackkit-attachments`.
+[[r2_buckets]]
+binding = "ATTACHMENTS"
+bucket_name = "feedbackkit-attachments"
+
+# Nightly sweep of uploads that were never attached to anything.
+[triggers]
+crons = ["17 3 * * *"]
+
+# Cloudflare Access protects /admin. Put the Worker on a hostname you control
+# (a custom domain or route), create a self-hosted Access application for
+# `<that host>/admin*`, then fill these in. The Worker verifies the JWT Access
+# injects, so the *.workers.dev address cannot be used to skip the login.
+# Leave both empty for `wrangler dev`: the admin is then open on localhost only.
+[vars]
+ACCESS_TEAM_DOMAIN = "calm-flower-395f.cloudflareaccess.com"
+ACCESS_AUD = "00539cdd9bd320b60f9f1cc9dcefb13bfe0bacb4c808bdc48ac6e05865783119"
+
+# App Attest. The App ID checked in attestations is "<APPLE_TEAM_ID>.<apps.bundle_id>".
+#   ATTEST_MODE = "off"       never verify
+#                 "optional"  attested installations must sign writes; others still work
+#                 "required"  unattested installations are refused (needs an attesting client build)
+# ATTEST_ALLOW_DEVELOPMENT accepts the development/sandbox App Attest environment
+# (Xcode builds). Set it to "false" once only App Store / TestFlight builds matter.
+APPLE_TEAM_ID = "V53QHKZTNF"
+ATTEST_MODE = "optional"
+ATTEST_ALLOW_DEVELOPMENT = "true"
+
+# Example custom domain (uncomment and edit):
+# routes = [{ pattern = "feedback.example.com", custom_domain = true }]
+
+[observability]
+enabled = true

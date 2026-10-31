@@ -1,0 +1,321 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    ": " : {
+
+    },
+    "·" : {
+
+    },
+    "#%lld" : {
+
+    },
+    "#%lld · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "#%1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "%lld unread replies" : {
+
+    },
+    "%lld votes" : {
+
+    },
+    "A feature or improvement you'd like to see." : {
+
+    },
+    "Add photo" : {
+
+    },
+    "Add Screenshot" : {
+
+    },
+    "All Statuses" : {
+
+    },
+    "An earlier copy of this report already reached us with different text." : {
+
+    },
+    "Anything else you'd like to say." : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Closed" : {
+
+    },
+    "Complete" : {
+
+    },
+    "Couldn't access secure storage on this device." : {
+
+    },
+    "Couldn't Load Reports" : {
+
+    },
+    "Couldn't Load the Board" : {
+
+    },
+    "Details" : {
+
+    },
+    "Developer" : {
+
+    },
+    "Done" : {
+
+    },
+    "Feedback Board" : {
+
+    },
+    "Filter" : {
+
+    },
+    "Follow" : {
+
+    },
+    "Following" : {
+
+    },
+    "Idea" : {
+
+    },
+    "Image attachment" : {
+
+    },
+    "In progress" : {
+
+    },
+    "Include device details" : {
+
+    },
+    "Issue" : {
+
+    },
+    "Later" : {
+
+    },
+    "Load More" : {
+
+    },
+    "Message" : {
+
+    },
+    "Messages can be at most %lld characters." : {
+
+    },
+    "Most voted" : {
+
+    },
+    "My Reports" : {
+
+    },
+    "Next" : {
+
+    },
+    "No further details." : {
+
+    },
+    "No replies yet. You'll see the developer's response here, and you can add more detail below." : {
+
+    },
+    "No Reports Yet" : {
+
+    },
+    "Nothing Here Yet" : {
+
+    },
+    "Now" : {
+
+    },
+    "OK" : {
+
+    },
+    "Other" : {
+
+    },
+    "Pending" : {
+
+    },
+    "Planned" : {
+
+    },
+    "Please add a little more detail (at least %lld characters)." : {
+
+    },
+    "Please check what you've written." : {
+
+    },
+    "Powered by" : {
+
+    },
+    "Published" : {
+
+    },
+    "Received" : {
+
+    },
+    "Recently updated" : {
+
+    },
+    "Remove image" : {
+
+    },
+    "Remove vote" : {
+
+    },
+    "Reported" : {
+
+    },
+    "Reports you send will appear here, along with any replies." : {
+
+    },
+    "Retry upload" : {
+
+    },
+    "Reviewed issues and ideas will appear here." : {
+
+    },
+    "Roadmap: %@" : {
+
+    },
+    "Screenshots" : {
+
+    },
+    "Search" : {
+
+    },
+    "Send" : {
+
+    },
+    "Send as a New Report" : {
+
+    },
+    "Send Feedback" : {
+
+    },
+    "Sending shares this report with the developer along with an anonymous identifier for this installation, used only to show you replies and status updates. Please don't include passwords or other sensitive personal details." : {
+
+    },
+    "Something is broken or behaving unexpectedly." : {
+
+    },
+    "Something Went Wrong" : {
+
+    },
+    "Sort" : {
+
+    },
+    "Status" : {
+
+    },
+    "Summarise it in a sentence" : {
+
+    },
+    "Testing" : {
+
+    },
+    "Thank You" : {
+
+    },
+    "The details can be at most %lld characters." : {
+
+    },
+    "The feedback service isn't set up for this app yet." : {
+
+    },
+    "The feedback service returned an error (%lld)." : {
+
+    },
+    "The feedback service sent an unexpected response." : {
+
+    },
+    "The server declined this request." : {
+
+    },
+    "The title can be at most %lld characters." : {
+
+    },
+    "The title needs at least %lld characters." : {
+
+    },
+    "This device couldn't be verified with the feedback service." : {
+
+    },
+    "This installation couldn't be verified. Please try again later." : {
+
+    },
+    "This item is no longer available." : {
+
+    },
+    "This report is too large to send." : {
+
+    },
+    "Title" : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Type" : {
+
+    },
+    "Up to %lld images. Only the developer can see them." : {
+
+    },
+    "Updated %@ · %lld following" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Updated %1$@ · %2$lld following"
+          }
+        }
+      }
+    },
+    "Vote" : {
+
+    },
+    "Vote · %lld" : {
+
+    },
+    "Voted · %lld" : {
+
+    },
+    "Write a message first." : {
+
+    },
+    "You" : {
+
+    },
+    "You're sending too quickly. Please try again shortly." : {
+
+    },
+    "You're sending too quickly. Try again in %lld seconds." : {
+
+    },
+    "Your feedback has been sent. You can check on it under My Reports." : {
+
+    }
+  },
+  "version" : "1.0"
+}

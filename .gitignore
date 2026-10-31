@@ -1,0 +1,12 @@
+# Swift / Xcode
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.DS_Store
+
+# Worker
+worker/node_modules/
+worker/.wrangler/
+worker/.dev.vars
