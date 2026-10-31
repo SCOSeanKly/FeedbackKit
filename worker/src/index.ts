@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { ApiError, errors } from './errors';
 import { admin } from './routes/admin';
+import { ask, askAdmin } from './routes/ask';
 import { attachments, sweepOrphans } from './routes/attachments';
 import { attest } from './routes/attest';
 import { board } from './routes/board';
@@ -39,6 +40,7 @@ app.route('/api/attest', attest); // /api/attest/challenge, /api/attest/register
 app.route('/api/submit', submit);
 app.route('/api/mine', mine);
 app.route('/api/attachments', attachments);
+app.route('/api/ask', ask); //       the in-app helper: /api/ask, /api/ask/web/:app, /api/ask/publish/:app
 app.route('/api', engage); //        /api/vote, /api/follow
 app.route('/api', conversation); //  /api/conversation, /api/reply, /api/conversation-read, /api/unread
 
@@ -51,6 +53,7 @@ app.route('/', site);
 // Developer inbox, behind Cloudflare Access; the enquiries list sits beside it.
 app.route('/admin', admin);
 app.route('/admin', enquiriesAdmin);
+app.route('/admin', askAdmin); //     /admin/api/ask/:app/log, /admin/api/ask/:app/usage
 
 app.notFound((c) =>
   c.json({ error: { code: 'not_found', message: 'No such endpoint.' } }, 404),

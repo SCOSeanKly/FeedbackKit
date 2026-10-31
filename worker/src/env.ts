@@ -36,6 +36,19 @@ export interface Env {
   ATTEST_MODE?: string;
   /** "true" accepts the development / sandbox App Attest environment. */
   ATTEST_ALLOW_DEVELOPMENT?: string;
+
+  // ── Ask (routes/ask.ts). All optional: with no key the routes answer "not set up". ──
+  /** Anthropic API key (secret). One key serves every app; spend is capped per app in ask_config. */
+  ANTHROPIC_API_KEY?: string;
+  /** Overrides https://api.anthropic.com. Used by the local test only. */
+  ANTHROPIC_API_BASE?: string;
+  /** Secret that authorises publishing knowledge and config from the CLI. Unset: publishing is closed. */
+  ASK_PUBLISH_TOKEN?: string;
+  /** Secret the test runner sends to skip the limits and logging. Unset: no bypass exists. */
+  ASK_EVAL_TOKEN?: string;
+  /** Burst limits for Ask, per installation and per IP (web route). Absent in local dev. */
+  ASK_INSTALLATION_LIMIT?: RateLimiter;
+  ASK_IP_LIMIT?: RateLimiter;
 }
 
 export function attestMode(env: Env): AttestMode {

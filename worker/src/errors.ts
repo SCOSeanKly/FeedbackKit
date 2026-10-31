@@ -6,8 +6,9 @@
  * Status semantics (fixed by the API contract):
  *   401 bad or missing credentials · 403 policy · 404 unknown resource
  *   409 request-id conflict · 413 body too large · 429 rate limit (+ Retry-After)
+ *   502 upstream (Ask's model call) failed · 503 a feature is not set up
  */
-export type ApiStatus = 400 | 401 | 403 | 404 | 409 | 413 | 429 | 500;
+export type ApiStatus = 400 | 401 | 403 | 404 | 409 | 413 | 429 | 500 | 502 | 503;
 
 export class ApiError extends Error {
   constructor(

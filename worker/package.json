@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "db:create": "wrangler d1 create feedbackkit",
     "db:migrate:local": "wrangler d1 migrations apply feedbackkit --local",
-    "db:migrate:remote": "wrangler d1 migrations apply feedbackkit --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply feedbackkit --remote",
+    "test:ask": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "hono": "^4.6.0"

@@ -98,3 +98,16 @@ ATTEST_ALLOW_DEVELOPMENT = "true"
 
 [observability]
 enabled = true
+
+# Ask (the in-app helper). Burst limits only; daily spend caps live in D1 (ask_config).
+# Secrets, set once with `wrangler secret put`: ANTHROPIC_API_KEY, ASK_PUBLISH_TOKEN
+# (and optionally ASK_EVAL_TOKEN for the answer-quality test runner).
+[[ratelimits]]
+name = "ASK_INSTALLATION_LIMIT"
+namespace_id = "1009"
+simple = { limit = 6, period = 60 }
+
+[[ratelimits]]
+name = "ASK_IP_LIMIT"
+namespace_id = "1010"
+simple = { limit = 6, period = 60 }
