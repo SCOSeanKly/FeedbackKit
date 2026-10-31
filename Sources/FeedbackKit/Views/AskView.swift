@@ -46,6 +46,7 @@ public struct AskView: View {
                         ForEach(model.messages) { message in
                             AskMessageRow(
                                 message: message,
+                                isLatest: message.id == model.messages.last?.id,
                                 guideURL: guideURL.flatMap { resolve in
                                     message.guide.flatMap { resolve($0) }
                                 },
@@ -293,6 +294,8 @@ private enum AskStyle {
 
 private struct AskMessageRow: View {
     let message: AskMessage
+    /// Only the newest answer offers 'Still stuck?', so a long chat is not full of it.
+    let isLatest: Bool
     let guideURL: URL?
     let onRate: (Bool) -> Void
     let onRetry: () -> Void
@@ -317,30 +320,34 @@ private struct AskMessageRow: View {
                     .padding(.vertical, 10)
                     .background(AskStyle.bubble, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
-                HStack(spacing: 10) {
+                // Three quiet rows under the answer, each with room to breathe: where to read
+                // more, whether it helped, and (latest answer only) a way out to a person.
+                VStack(alignment: .leading, spacing: 10) {
                     if let guideURL {
                         Link(destination: guideURL) {
                             Label {
                                 if let title = message.guideTitle {
-                                    Text(verbatim: title)
+                                    Text(verbatim: title).multilineTextAlignment(.leading)
                                 } else {
                                     Text("Read the guide", bundle: .module)
                                 }
                             } icon: {
                                 Image(systemName: "book")
                             }
+                            .font(.footnote.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
-                        .font(.footnote.weight(.semibold))
                     }
-                    if let onContactSupport {
+                    if message.logID != nil {
+                        ratingRow
+                    }
+                    if isLatest, let onContactSupport {
                         Button(action: onContactSupport) {
                             Text("Still stuck? Send feedback", bundle: .module)
                         }
-                        .font(.footnote.weight(.semibold))
-                    }
-                    Spacer(minLength: 0)
-                    if message.logID != nil {
-                        ratingButtons
+                        .font(.footnote)
                     }
                 }
                 .padding(.horizontal, 4)
@@ -369,20 +376,34 @@ private struct AskMessageRow: View {
         }
     }
 
-    @ViewBuilder
-    private var ratingButtons: some View {
-        if let rating = message.rating {
-            Image(systemName: rating ? "hand.thumbsup.fill" : "hand.thumbsdown.fill")
-                .foregroundStyle(.secondary)
-                .accessibilityLabel(Text(rating ? "Marked helpful" : "Marked not helpful", bundle: .module))
-        } else {
-            Button { onRate(true) } label: { Image(systemName: "hand.thumbsup") }
+    /// "Was this helpful?" with two thumbs big enough to hit, then a thank-you once rated.
+    private var ratingRow: some View {
+        HStack(spacing: 2) {
+            if let rating = message.rating {
+                Image(systemName: rating ? "hand.thumbsup.fill" : "hand.thumbsdown.fill")
+                    .padding(.trailing, 4)
+                Text("Thanks for letting us know", bundle: .module)
+            } else {
+                Text("Was this helpful?", bundle: .module)
+                    .padding(.trailing, 6)
+                Button { onRate(true) } label: {
+                    Image(systemName: "hand.thumbsup")
+                        .frame(width: 40, height: 36)
+                        .contentShape(Rectangle())
+                }
                 .accessibilityLabel(Text("Helpful", bundle: .module))
-            Button { onRate(false) } label: { Image(systemName: "hand.thumbsdown") }
+                Button { onRate(false) } label: {
+                    Image(systemName: "hand.thumbsdown")
+                        .frame(width: 40, height: 36)
+                        .contentShape(Rectangle())
+                }
                 .accessibilityLabel(Text("Not helpful", bundle: .module))
+            }
         }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .buttonStyle(.plain)
     }
-
 }
 
 private struct AskTypingIndicator: View {
@@ -458,5 +479,28 @@ private struct AskInputBar: View {
             baseURL: URL(string: "https://feedback.example.com")!,
             appID: "demo"
         )))
+    }
+}
+
+#Preview("Answer, with guide and rating") {
+    var answer = AskMessage(
+        role: .assistant,
+        text: "1. Swipe in from the **left edge** of the app to open the Keys menu.\n2. Under **Typing**, turn off **Word Correction**.\n\nThis stops NuKey from automatically fixing misspelled words as you type."
+    )
+    answer.guideTitle = "The Keys menu: every setting"
+    answer.logID = "preview"
+    return ScrollView {
+        VStack(alignment: .leading, spacing: 12) {
+            AskMessageRow(
+                message: AskMessage(role: .user, text: "How do I turn off autocorrect?"),
+                isLatest: false, guideURL: nil, onRate: { _ in }, onRetry: {}, onContactSupport: nil
+            )
+            AskMessageRow(
+                message: answer, isLatest: true,
+                guideURL: URL(string: "https://example.com/docs/the-keys-menu"),
+                onRate: { _ in }, onRetry: {}, onContactSupport: {}
+            )
+        }
+        .padding()
     }
 }
