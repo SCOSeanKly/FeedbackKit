@@ -397,6 +397,30 @@ public actor FeedbackClient {
         try await authenticated(method: "POST", path: "api/follow", body: ToggleRequest(issueNumber: issueNumber, on: on))
     }
 
+    // MARK: - Ask
+
+    /// Whether the helper is switched on for this app, and how it should look.
+    /// Throws `notFound` when the app has no helper, so hosts can hide the entry.
+    public func askConfiguration() async throws -> AskConfiguration {
+        try await authenticatedRaw(method: "GET", path: "api/ask/config", body: nil)
+    }
+
+    /// Asks the helper a question. `history` is the conversation so far (the server
+    /// uses only the last few turns), so "and how do I turn that off?" works.
+    public func ask(_ question: String, history: [AskTurn] = []) async throws -> AskAnswer {
+        let text = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        return try await authenticated(method: "POST", path: "api/ask", body: AskRequest(question: text, history: history))
+    }
+
+    /// Records whether an answer helped. Failures are the caller's to ignore.
+    public func rateAskAnswer(logID: String, helpful: Bool) async throws {
+        let _: AskAcknowledgement = try await authenticated(
+            method: "POST",
+            path: "api/ask/feedback",
+            body: AskFeedbackRequest(logId: logID, helpful: helpful)
+        )
+    }
+
     // MARK: - Transport
 
     private func authenticated<Response: Decodable>(
