@@ -23,9 +23,11 @@ public struct FeedbackForm: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: FeedbackFormModel
     @State private var uploader: AttachmentUploader
+    @State private var quickAnswer: QuickAnswerModel
     @FocusState private var focusedField: Field?
 
     private let onSubmitted: (@MainActor (SubmissionReceipt) -> Void)?
+    private let askFirst: AskBeforeSending?
 
     private enum Field: Hashable {
         case title
@@ -37,15 +39,20 @@ public struct FeedbackForm: View {
     ///   - diagnostics: Device facts offered for attachment, shown in full
     ///     in the consent text with an on-by-default toggle. Pass `nil` to
     ///     hide the option entirely.
+    ///   - askFirst: Pass a value to offer "Check for an answer first" once someone has
+    ///     started describing a problem. Nil (the default) leaves the form unchanged.
     ///   - onSubmitted: Called after the server confirms, before the sheet
     ///     dismisses. Use it to thank the person or refresh a list.
     public init(
         client: FeedbackClient,
         diagnostics: FeedbackDiagnostics? = .current(),
+        askFirst: AskBeforeSending? = nil,
         onSubmitted: (@MainActor (SubmissionReceipt) -> Void)? = nil
     ) {
         _model = State(initialValue: FeedbackFormModel(client: client, diagnostics: diagnostics))
         _uploader = State(initialValue: AttachmentUploader(client: client))
+        _quickAnswer = State(initialValue: QuickAnswerModel(client: client))
+        self.askFirst = askFirst
         self.onSubmitted = onSubmitted
     }
 
@@ -55,6 +62,7 @@ public struct FeedbackForm: View {
                 kindSection
                 titleSection
                 bodySection
+                if askFirst != nil { quickAnswerSection }
                 screenshotsSection
                 diagnosticsSection
                 errorSection
@@ -130,6 +138,69 @@ public struct FeedbackForm: View {
             Text("Details", bundle: .module)
         } footer: {
             counter(model.draft.bodyLength, limit: FeedbackLimits.bodyLength)
+        }
+    }
+
+    /// "Check for an answer first". Only for problems and questions, only after a real start
+    /// on the title, and only when tapped: nothing is asked in the background.
+    @ViewBuilder
+    private var quickAnswerSection: some View {
+        if model.draft.kind != .idea, model.draft.titleLength >= 10, quickAnswer.phase != .hidden {
+            Section {
+                switch quickAnswer.phase {
+                case .idle, .failed:
+                    Button {
+                        quickAnswer.check(title: model.draft.title, details: model.draft.body)
+                    } label: {
+                        Label {
+                            Text("Check for an answer first", bundle: .module)
+                        } icon: {
+                            Image(systemName: "sparkles")
+                        }
+                    }
+                    if quickAnswer.phase == .failed {
+                        Text("The helper couldn't be reached. You can still send your feedback below.", bundle: .module)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                case .asking:
+                    HStack {
+                        ProgressView()
+                        Text("Looking for an answer…", bundle: .module).foregroundStyle(.secondary)
+                    }
+                case .answered(let answer):
+                    Text(askFormatted(answer.answer))
+                    if let slug = answer.guide, let url = askFirst?.guideURL?(slug) {
+                        Link(destination: url) {
+                            Label {
+                                if let title = answer.guideTitle { Text(verbatim: title) } else { Text("Read the guide", bundle: .module) }
+                            } icon: {
+                                Image(systemName: "book")
+                            }
+                        }
+                    }
+                    Button {
+                        quickAnswer.conclude(answer, solved: true)
+                        Task {
+                            try? await model.discardDraft()
+                            dismiss()
+                        }
+                    } label: {
+                        Text("That solved it", bundle: .module)
+                    }
+                    Button {
+                        quickAnswer.conclude(answer, solved: false)
+                    } label: {
+                        Text("Not quite, I'll send this", bundle: .module)
+                    }
+                case .hidden:
+                    EmptyView()
+                }
+            } footer: {
+                if quickAnswer.phase == .idle {
+                    Text("Many questions already have an answer. This asks the in-app helper and sends nothing to us.", bundle: .module)
+                }
+            }
         }
     }
 
@@ -291,6 +362,11 @@ final class FeedbackFormModel {
             draft = FeedbackDraft()
             persistDraft()
         }
+    }
+
+    /// Throws the saved draft away when the helper settled the question.
+    func discardDraft() async throws {
+        try await client.discardDraft()
     }
 
     func persistDraft() {

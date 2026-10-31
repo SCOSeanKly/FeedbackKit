@@ -214,6 +214,70 @@ final class AskModel {
     }
 }
 
+// MARK: - Before you send
+
+/// Opt in to "Check for an answer first" on `FeedbackForm`. When someone has started
+/// describing a problem, a button offers to ask the helper before they send it. Nothing
+/// is asked until they tap, and ideas are never offered it.
+public struct AskBeforeSending {
+    /// Turns a guide slug into a page, so the answer can link to it.
+    public var guideURL: ((String) -> URL?)?
+
+    public init(guideURL: ((String) -> URL?)? = nil) {
+        self.guideURL = guideURL
+    }
+}
+
+/// The helper writes **bold** and numbered lines; keep the line breaks and render the bold.
+func askFormatted(_ text: String) -> AttributedString {
+    let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+    return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+}
+
+@MainActor
+@Observable
+final class QuickAnswerModel {
+    enum Phase: Equatable {
+        case idle
+        case asking
+        case answered(AskAnswer)
+        /// The helper is not set up for this app, or the person said it did not help.
+        case hidden
+        case failed
+    }
+
+    private(set) var phase: Phase = .idle
+    private let client: FeedbackClient
+
+    init(client: FeedbackClient) {
+        self.client = client
+    }
+
+    func check(title: String, details: String) {
+        guard phase == .idle || phase == .failed else { return }
+        phase = .asking
+        // The server accepts 400 characters; the title is the question, the details add context.
+        let text = String((title + "\n" + details).trimmingCharacters(in: .whitespacesAndNewlines).prefix(400))
+        Task {
+            do {
+                phase = .answered(try await client.ask(text))
+            } catch FeedbackError.notFound {
+                phase = .hidden
+            } catch {
+                phase = .failed
+            }
+        }
+    }
+
+    /// The person said whether the answer settled it. Returns after the verdict is recorded.
+    func conclude(_ answer: AskAnswer, solved: Bool) {
+        if let logID = answer.logId {
+            Task { try? await client.rateAskAnswer(logID: logID, helpful: solved) }
+        }
+        if !solved { phase = .hidden }
+    }
+}
+
 // MARK: - Pieces
 
 private enum AskStyle {
@@ -247,7 +311,7 @@ private struct AskMessageRow: View {
 
         case .assistant:
             VStack(alignment: .leading, spacing: 8) {
-                Text(Self.formatted(message.text))
+                Text(askFormatted(message.text))
                     .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
@@ -319,11 +383,6 @@ private struct AskMessageRow: View {
         }
     }
 
-    /// The helper writes **bold** and numbered lines; keep the line breaks and render the bold.
-    static func formatted(_ text: String) -> AttributedString {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
-    }
 }
 
 private struct AskTypingIndicator: View {
