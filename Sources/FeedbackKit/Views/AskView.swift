@@ -80,13 +80,15 @@ public struct AskView: View {
                 onSend: { model.send(model.draft) }
             )
 
-            VStack(spacing: 4) {
+            // Left-aligned with the input field above, like the website's chat page.
+            VStack(alignment: .leading, spacing: 10) {
                 Text("AI helper. It can be wrong, and it never changes anything on your device.", bundle: .module)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(.leading)
                 FeedbackBrandBadge()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
             .padding(.bottom, 8)
         }
