@@ -27,13 +27,18 @@ public struct AskView: View {
 
     private let guideURL: ((String) -> URL?)?
     private let onContactSupport: (() -> Void)?
+    private let initialQuestion: String?
 
+    /// `initialQuestion` is asked as soon as the screen opens, so a "?" on a
+    /// feature can land the person on that feature's answer in one tap.
     public init(
         client: FeedbackClient,
         guideURL: ((String) -> URL?)? = nil,
+        initialQuestion: String? = nil,
         onContactSupport: (() -> Void)? = nil
     ) {
         _model = State(initialValue: AskModel(client: client))
+        self.initialQuestion = initialQuestion
         self.guideURL = guideURL
         self.onContactSupport = onContactSupport
     }
@@ -110,7 +115,12 @@ public struct AskView: View {
                 .disabled(model.messages.isEmpty)
             }
         }
-        .task { await model.loadConfiguration() }
+        .task {
+            await model.loadConfiguration()
+            if let initialQuestion, model.messages.isEmpty {
+                model.send(initialQuestion)
+            }
+        }
     }
 
     private func scrollToEnd(_ proxy: ScrollViewProxy) {
