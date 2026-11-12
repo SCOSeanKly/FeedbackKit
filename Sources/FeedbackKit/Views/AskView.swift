@@ -28,17 +28,23 @@ public struct AskView: View {
     private let guideURL: ((String) -> URL?)?
     private let onContactSupport: (() -> Void)?
     private let initialQuestion: String?
+    private let assistantAvatar: (() -> AnyView)?
 
     /// `initialQuestion` is asked as soon as the screen opens, so a "?" on a
     /// feature can land the person on that feature's answer in one tap.
+    ///
+    /// `assistantAvatar` puts a small view beside each answer and the typing
+    /// indicator, for an app that gives its helper a face.
     public init(
         client: FeedbackClient,
         guideURL: ((String) -> URL?)? = nil,
         initialQuestion: String? = nil,
+        assistantAvatar: (() -> AnyView)? = nil,
         onContactSupport: (() -> Void)? = nil
     ) {
         _model = State(initialValue: AskModel(client: client))
         self.initialQuestion = initialQuestion
+        self.assistantAvatar = assistantAvatar
         self.guideURL = guideURL
         self.onContactSupport = onContactSupport
     }
@@ -57,12 +63,13 @@ public struct AskView: View {
                                 },
                                 onRate: { helpful in model.rate(message.id, helpful: helpful) },
                                 onRetry: { model.retry() },
-                                onContactSupport: message.role == .assistant ? onContactSupport : nil
+                                onContactSupport: message.role == .assistant ? onContactSupport : nil,
+                                avatar: assistantAvatar
                             )
                             .id(message.id)
                         }
                         if model.isSending {
-                            AskTypingIndicator().id("typing")
+                            AskTypingIndicator(avatar: assistantAvatar).id("typing")
                         }
                     }
                     .padding()
@@ -312,6 +319,7 @@ private struct AskMessageRow: View {
     let onRate: (Bool) -> Void
     let onRetry: () -> Void
     let onContactSupport: (() -> Void)?
+    let avatar: (() -> AnyView)?
 
     var body: some View {
         switch message.role {
@@ -325,6 +333,8 @@ private struct AskMessageRow: View {
                 .padding(.leading, 40)
 
         case .assistant:
+            HStack(alignment: .top, spacing: 8) {
+            if let avatar { avatar().frame(width: 30) }
             VStack(alignment: .leading, spacing: 8) {
                 Text(askFormatted(message.text))
                     .textSelection(.enabled)
@@ -363,6 +373,7 @@ private struct AskMessageRow: View {
                     }
                 }
                 .padding(.horizontal, 4)
+            }
             }
             .padding(.trailing, 24)
 
@@ -419,12 +430,17 @@ private struct AskMessageRow: View {
 }
 
 private struct AskTypingIndicator: View {
+    let avatar: (() -> AnyView)?
+
     var body: some View {
-        ProgressView()
-            .padding(.horizontal, 18)
-            .padding(.vertical, 12)
-            .background(AskStyle.bubble, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .accessibilityLabel(Text("Thinking", bundle: .module))
+        HStack(alignment: .center, spacing: 8) {
+            if let avatar { avatar().frame(width: 30) }
+            ProgressView()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .background(AskStyle.bubble, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .accessibilityLabel(Text("Thinking", bundle: .module))
+        }
     }
 }
 
@@ -505,12 +521,12 @@ private struct AskInputBar: View {
         VStack(alignment: .leading, spacing: 12) {
             AskMessageRow(
                 message: AskMessage(role: .user, text: "How do I turn off autocorrect?"),
-                isLatest: false, guideURL: nil, onRate: { _ in }, onRetry: {}, onContactSupport: nil
+                isLatest: false, guideURL: nil, onRate: { _ in }, onRetry: {}, onContactSupport: nil, avatar: nil
             )
             AskMessageRow(
                 message: answer, isLatest: true,
                 guideURL: URL(string: "https://example.com/docs/the-keys-menu"),
-                onRate: { _ in }, onRetry: {}, onContactSupport: {}
+                onRate: { _ in }, onRetry: {}, onContactSupport: {}, avatar: nil
             )
         }
         .padding()
